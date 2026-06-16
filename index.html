@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Uzaktan Destek & Canlı Mesajlaşma Portalı</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --primary-color: #1e293b;
+            --accent-color: #3b82f6;
+            --accent-hover: #1d4ed8;
+            --text-color: #334155;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        body { 
+            background: linear-gradient(rgba(240, 244, 248, 0.85), rgba(240, 244, 248, 0.85)), 
+                        url('https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-color); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        
+        .screen { display: none; width: 100%; max-width: 550px; background: var(--card-bg); border-radius: 14px; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); border: 1px solid var(--border-color); overflow: hidden; }
+        .screen.active { display: block; }
+        .screen.wide { max-width: 1100px; }
+
+        h1, h2 { color: var(--primary-color); margin-bottom: 20px; text-align: center; }
+        h2 { font-size: 20px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; text-align: left; }
+        
+        .welcome-header { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .welcome-banner { width: 100%; height: 130px; border-radius: 10px; object-fit: cover; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .welcome-header h1 { font-size: 24px; font-weight: 800; color: var(--primary-color); margin-bottom: 6px; letter-spacing: -0.5px; }
+        .welcome-header p { font-size: 14px; color: #64748b; }
+        
+        .login-options { display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px; }
+        
+        .login-box { 
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px; 
+            background: #f8fafc; 
+            border: 2px solid var(--border-color); 
+            border-radius: 12px; 
+            cursor: pointer; 
+            text-align: left; 
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+        .login-box:hover { 
+            border-color: var(--accent-color); 
+            background: #f0fdf4; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.12);
+        }
+        .login-box.admin-box:hover { background: #f1f5f9; border-color: #64748b; }
+        .card-img { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .login-text-meta { flex: 1; }
+        .login-title { font-size: 16px; font-weight: 700; color: var(--primary-color); }
+        .login-desc { font-size: 12px; color: #64748b; margin-top: 2px; line-height: 1.4; }
+        .arrow-icon { font-size: 18px; color: #cbd5e1; transition: transform 0.2s; padding-right: 5px; }
+        .login-box:hover .arrow-icon { color: var(--accent-color); transform: translateX(3px); }
+        
+        .portal-footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* FORM VE PANEL ALANLARI */
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #475569; }
+        input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; padding: 11px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; transition: border 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        
+        button.action-btn { background-color: var(--accent-color); color: white; border: none; padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; transition: background 0.2s; }
+        button.action-btn:hover { background-color: var(--accent-hover); }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .logout-btn { padding: 6px 14px; background: var(--danger); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+
+        .stats-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--border-color); }
+        .stat-card .num { font-size: 24px; font-weight: bold; }
+        .stat-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 600; }
+        
+        .ticket-list { max-height: 550px; overflow-y: auto; text-align: left; }
+        .ticket-item { background: #fff; border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; margin-bottom: 12px; transition: all 0.3s ease; }
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .ticket-title { font-weight: bold; font-size: 15px; color: var(--primary-color); }
+        
+        .badge { padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 30px; }
+        .badge-Açık { background-color: #fef3c7; color: #d97706; }
+        .badge-İşlemde { background-color: #e0f2fe; color: #0284c7; }
+        .badge-Çözüldü { background-color: #d1fae5; color: #059669; }
+
+        .ticket-meta { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+        .ticket-desc { font-size: 13px; color: #334155; background: #f8fafc; padding: 10px; border-left: 3px solid #cbd5e1; margin-bottom: 10px; border-radius: 0 6px 6px 0; }
+        
+        .anydesk-container { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px dashed #cbd5e1; padding: 6px 12px; border-radius: 6px; margin-bottom: 10px; }
+        .anydesk-box { color: var(--primary-color); font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 13px; }
+        .anydesk-btn { background: var(--accent-color); color: white; border: none; padding: 4px 12px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+        .anydesk-btn:hover { background: var(--accent-hover); }
+
+        .assignment-box { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; margin-right: 15px; color: #475569; }
+        .assignment-select { padding: 4px 8px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-weight: 600; color: #334155; }
+
+        /* MERKEZİ MESAJLAŞMA (CHAT) ALANI TASARIMI */
+        .chat-section { margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .chat-box { max-height: 250px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .msg { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.4; word-break: break-word; }
+        .msg.admin { background: #e0f2fe; color: #0369a1; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg.customer { background: #d1fae5; color: #065f46; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-meta { font-size: 10px; color: #94a3b8; margin-top: 3px; display: block; text-align: right; }
+        .chat-input-group { display: flex; gap: 8px; }
+        .chat-input-group input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; }
+        .chat-send-btn { background: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .chat-send-btn:hover { background: var(--accent-hover); }
+
+        /* OTOMATİK KOPYALAMA ALANI STİLİ */
+        .copy-banner {
+            background-color: #f0fdf4;
+            border: 1px dashed #10b981;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #14532d;
+        }
+        .copy-banner-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-small { padding: 5px 12px; font-size: 11px; border-radius: 6px; color: white; font-weight: 600; margin-left: 5px; cursor: pointer; display: inline-block; user-select: none; }
+        .btn-process { background-color: #3b82f6; }
+        .btn-solve { background-color: #10b981; }
+        .btn-delete { background-color: #ef4444; }
+        .actions { display: inline-block; float: right; }
+        .ticket-item::after { content: ""; display: table; clear: both; }
+
+        @keyframes flash-red {
+            0% { border-color: var(--danger); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); background-color: #fef2f2; }
+            50% { border-color: var(--border-color); box-shadow: none; background-color: #fff; }
+            100% { border-color: var(--danger); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); background-color: #fef2f2; }
+        }
+        .new-alert-animation { animation: flash-red 1.5s infinite; }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- 1. EKRAN: ANA GİRİŞ -->
+    <div id="loginScreen" class="screen active">
+        <div class="welcome-header">
+            <img class="welcome-banner" src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80" alt="IT Banner">
+            <h1>Bilişim & IT Destek Merkezi</h1>
+            <p>Merkezi Bulut Entegrasyonlu Çağrı Yönetim Portalı</p>
+        </div>
+        
+        <div class="login-options">
+            <div class="login-box" onclick="switchScreen('customerScreen')">
+                <img class="card-img" src="https://images.unsplash.com/photo-1600132806370-bf17e65e942f?auto=format&fit=crop&w=150&q=80" alt="Müşteri Paneli">
+                <div class="login-text-meta">
+                    <div class="login-title">Müşteri Destek Paneli</div>
+                    <div class="login-desc">Hızlı arıza bildirimi yapın veya yeni bir destek kaydı oluşturun.</div>
+                </div>
+                <div class="arrow-icon">➔</div>
+            </div>
+
+            <div class="login-box" onclick="switchScreen('ticketQueryScreen')">
+                <img class="card-img" src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=150&q=80" alt="Talep Takip">
+                <div class="login-text-meta">
+                    <div class="login-title">Talep Takip & Canlı Chat</div>
+                    <div class="login-desc">Mevcut bilet kodunuz ile giriş yapıp teknik ekiple karşılıklı mesajlaşın.</div>
+                </div>
+                <div class="arrow-icon">➔</div>
+            </div>
+            
+            <div class="login-box admin-box" onclick="switchScreen('adminLoginScreen')">
+                <img class="card-img" src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=150&q=80" alt="Yönetici Paneli">
+                <div class="login-text-meta">
+                    <div class="login-title">Sistem Yöneticisi Girişi</div>
+                    <div class="login-desc">Gelen çağrı havuzunu izleyin, uzman atayın ve biletleri yönetin.</div>
+                </div>
+                <div class="arrow-icon">➔</div>
+            </div>
+        </div>
+        <div class="portal-footer">IT HELPDESK SYSTEM v3.2</div>
+    </div>
+
+    <!-- MÜŞTERİ BİLET SORGULAMA GİRİŞ EKRANI -->
+    <div id="ticketQueryScreen" class="screen">
+        <h1>Talep Takip Girişi</h1>
+        <div class="form-group" style="margin-top:20px;">
+            <label>Bilet / Talep ID Numarası:</label>
+            <input type="text" id="queryTicketId" placeholder="Örn: TKT-123456">
+        </div>
+        <p id="queryError" style="color:var(--danger); font-size:13px; margin-bottom:10px; display:none;">❌ Bu ID'ye ait aktif bir talep bulunamadı!</p>
+        <button class="action-btn" onclick="checkTicketId()">Talebi Görüntüle & Chate Bağlan</button>
+        <button class="action-btn" style="background:#64748b; margin-top:5px;" onclick="switchScreen('loginScreen')">Geri Dön</button>
+    </div>
+
+    <!-- MÜŞTERİ CANLI CHAT VE DETAY SAYFASI -->
+    <div id="customerChatScreen" class="screen">
+        <div class="top-bar">
+            <span><strong>Bilet ID:</strong> <span id="chatDisplayId" style="font-weight:bold; color:var(--accent-color);"></span></span>
+            <button class="logout-btn" style="background:#64748b;" onclick="exitCustomerChat()">Kapat</button>
+        </div>
+
+        <!-- OTOMATİK KOPYALANDIĞINI BELİRTEN VE TEKRAR KOPYALAYABİLECEKLERİ ALAN -->
+        <div class="copy-banner">
+            <span>🔑 Takip kodunuz panoya otomatik kopyalandı!</span>
+            <button class="copy-banner-btn" id="bannerCopyBtn" onclick="manualCopyCode()">📋 Kodu Kopyala</button>
+        </div>
+
+        <h2 id="chatDisplayTitle">Yükleniyor...</h2>
+        <div style="font-size:13px; margin:10px 0; color:#64748b;">
+            <div><strong>Durum:</strong> <span id="chatDisplayStatus" class="badge"></span></div>
+            <div style="margin-top:4px;"><strong>Atanan Uzman:</strong> <span id="chatDisplayStaff" style="font-weight:600;"></span></div>
+        </div>
+
+        <div class="chat-section">
+            <label>Teknik Ekip ile Canlı Yazışma</label>
+            <div class="chat-box" id="customerChatBox"></div>
+            <div class="chat-input-group">
+                <input type="text" id="customerChatInput" placeholder="Mesajınızı yazın..." onkeypress="if(event.key==='Enter') sendChatMessage('customer')">
+                <button class="chat-send-btn" onclick="sendChatMessage('customer')">Gönder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMİN ŞİFRE GİRİŞ EKRANI -->
+    <div id="adminLoginScreen" class="screen">
+        <h1>Yönetici Doğrulaması</h1>
+        <div class="form-group" style="margin-top:20px;">
+            <label>Yönetici Şifresi:</label>
+            <input type="password" id="adminPassword" placeholder="Şifrenizi girin">
+        </div>
+        <p id="loginError" style="color:var(--danger); font-size:13px; margin-bottom:10px; display:none;">❌ Hatalı şifre girdiniz!</p>
+        <button class="action-btn" onclick="checkAdminPassword()">Giriş Yap</button>
+        <button class="action-btn" style="background:#64748b; margin-top:5px;" onclick="switchScreen('loginScreen')">Geri Dön</button>
+    </div>
+
+    <!-- MÜŞTERİ TALEP OLUŞTURMA EKRANI -->
+    <div id="customerScreen" class="screen">
+        <div class="top-bar">
+            <span><strong>Mod:</strong> Müşteri Paneli</span>
+            <button class="logout-btn" style="background:#64748b;" onclick="switchScreen('loginScreen')">Ana Sayfa</button>
+        </div>
+        <h2>Yeni Destek Talebi Oluştur</h2>
+        <form id="ticketForm" style="margin-top:15px;">
+            <div class="form-group">
+                <label>Firma Adı</label>
+                <input type="text" id="custCompany" placeholder="Örn: ABC Tekstil Ltd. Şti." required>
+            </div>
+            <div class="form-group">
+                <label>Adınız Soyadınız</label>
+                <input type="text" id="custName" placeholder="Örn: Ahmet Yılmaz" required>
+            </div>
+            <div class="form-group">
+                <label>E-posta Adresiniz</label>
+                <input type="email" id="custEmail" placeholder="ahmet@firma.com" required>
+            </div>
+            <div class="form-group">
+                <label>Destek Kategorisi</label>
+                <select id="custCat">
+                    <option>Sunucu / Sanallaştırma Sorunu</option>
+                    <option>Network / Güvenlik Duvarı (Firewall)</option>
+                    <option>Yazıcı / Çevre Birimleri</option>
+                    <option>E-posta / Kullanıcı Hesapları</option>
+                    <option>Diğer Teknik Destek</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sorunun Başlığı</label>
+                <input type="text" id="ticketTitle" placeholder="Örn: Sunucu Disk Hatası" required>
+            </div>
+            <div class="form-group">
+                <label>Detaylı Açıklama</label>
+                <textarea id="ticketDesc" rows="4" placeholder="Lütfen yaşadığınız problemi detaylandırın..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>AnyDesk ID / Bağlantı Numarası (İsteğe Bağlı)</label>
+                <input type="text" id="custAnyDesk" placeholder="Örn: 123 456 789">
+            </div>
+            <button type="submit" class="action-btn">Talebi Gönder ve Chate Bağlan</button>
+        </form>
+    </div>
+
+    <!-- YÖNETİCİ TAKİP PANELİ -->
+    <div id="adminDashboardScreen" class="screen wide">
+        <div class="top-bar">
+            <span>🛠️ <strong>Sistem Yöneticisi Paneli</strong></span>
+            <button class="logout-btn" onclick="safeLogout()">Güvenli Çıkış</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-card"><div class="num" id="countOpen" style="color:var(--danger);">0</div><div class="label">Açık Talep</div></div>
+            <div class="stat-card"><div class="num" id="countProcess" style="color:var(--accent-color);">0</div><div class="label">İşlemde</div></div>
+            <div class="stat-card"><div class="num" id="countCombined" style="color:var(--success);">0</div><div class="label">Çözüldü</div></div>
+        </div>
+
+        <h2>Gelen Müşteri Talepleri Havuzu</h2>
+        <div class="ticket-list" id="ticketContainer" style="margin-top:15px;">
+            <p style="text-align:center; color:#999; padding:20px;">Veritabanına bağlanılıyor...</p>
+        </div>
+    </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyB-ozZNgMRmose93sUb2miC0mvQVwrTu4E",
+        authDomain: "helpdest-test.firebaseapp.com",
+        projectId: "helpdest-test",
+        storageBucket: "helpdest-test.firebasestorage.app",
+        messagingSenderId: "400357271971",
+        appId: "1:400357271971:web:11812adce5fbcd6e821216",
+        measurementId: "G-6BD2EXFDD8"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    let currentScreen = "loginScreen";
+    let isInitialLoad = true;
+    let activeCustomerTicketId = null; 
+    let customerChatUnsubscribe = null;
+    let unsubscribe = null;
+
+    function switchScreen(screenId) {
+        currentScreen = screenId;
+        const screens = ['loginScreen', 'adminLoginScreen', 'customerScreen', 'adminDashboardScreen', 'ticketQueryScreen', 'customerChatScreen'];
+        screens.forEach(s => {
+            const el = document.getElementById(s);
+            if(el) el.style.display = 'none';
+        });
+        
+        const target = document.getElementById(screenId);
+        if(target) {
+            target.style.display = 'block';
+            if(screenId === 'adminDashboardScreen') {
+                isInitialLoad = true; 
+                listenToTickets();
+            }
+        }
+    }
+
+    function safeLogout() {
+        if(unsubscribe) unsubscribe();
+        switchScreen('loginScreen');
+    }
+
+    function checkAdminPassword() {
+        const inputPass = document.getElementById('adminPassword').value;
+        if (inputPass === "admin123") {
+            document.getElementById('adminPassword').value = ""; 
+            document.getElementById('loginError').style.display = 'none';
+            switchScreen('adminDashboardScreen');
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    // YENİ DÜZENLEME: TALEP AÇILIR AÇILMAZ OTOMATİK KOPYALAR VE CHATE AKTARIR
+    document.getElementById('ticketForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "⏳ Bağlantı Kuruluyor...";
+        }
+
+        const generatedId = "TKT-" + Math.floor(100000 + Math.random() * 900000);
+        let rawAnydesk = document.getElementById('custAnyDesk').value;
+        let cleanAnydesk = rawAnydesk.replace(/\s+/g, '');
+        
+        const newTicket = {
+            ticketId: generatedId,
+            company: document.getElementById('custCompany').value,
+            name: document.getElementById('custName').value,
+            email: document.getElementById('custEmail').value,
+            category: document.getElementById('custCat').value,
+            title: document.getElementById('ticketTitle').value,
+            desc: document.getElementById('ticketDesc').value,
+            anydesk: cleanAnydesk || "Belirtilmedi",
+            status: 'Açık',
+            assignedTo: 'Atanmadı',
+            messages: [], 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            dateString: new Date().toLocaleString('tr-TR')
+        };
+
+        db.collection("tickets").doc(generatedId).set(newTicket)
+        .then(() => {
+            // Kod arka planda panoya kopyalanıyor
+            navigator.clipboard.writeText(generatedId).catch(err => console.log("Kopyalama hatası:", err));
+            
+            document.getElementById('ticketForm').reset();
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Talebi Gönder ve Chate Bağlan"; }
+            
+            // Bekletmeden doğrudan canlı chat sayfasına yönlendirir
+            openCustomerChat(generatedId);
+        })
+        .catch((error) => {
+            console.error(error);
+            alert("Bağlantı hatası oluştu.");
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Talebi Gönder ve Chate Bağlan"; }
+        });
+    });
+
+    // MANUEL TEKRAR KOPYALAMAK İSTEYENLER İÇİN BUTON FONKSİYONU
+    function manualCopyCode() {
+        if (!activeCustomerTicketId) return;
+        navigator.clipboard.writeText(activeCustomerTicketId).then(() => {
+            const btn = document.getElementById('bannerCopyBtn');
+            btn.innerText = "✅ Kopyalandı!";
+            btn.style.background = "#059669";
+            setTimeout(() => {
+                btn.innerText = "📋 Kodu Kopyala";
+                btn.style.background = "#10b981";
+            }, 2000);
+        });
+    }
+
+    function checkTicketId() {
+        const inputId = document.getElementById('queryTicketId').value.trim().toUpperCase();
+        if(!inputId) return;
+
+        db.collection("tickets").doc(inputId).get().then((doc) => {
+            if(doc.exists) {
+                document.getElementById('queryError').style.display = 'none';
+                document.getElementById('queryTicketId').value = "";
+                openCustomerChat(inputId);
+            } else {
+                document.getElementById('queryError').style.display = 'block';
+            }
+        });
+    }
+
+    function openCustomerChat(ticketId) {
+        activeCustomerTicketId = ticketId;
+        switchScreen('customerChatScreen');
+        
+        if(customerChatUnsubscribe) customerChatUnsubscribe();
+
+        customerChatUnsubscribe = db.collection("tickets").doc(ticketId).onSnapshot((doc) => {
+            if(!doc.exists) return;
+            const data = doc.data();
+            
+            document.getElementById('chatDisplayId').innerText = data.ticketId;
+            document.getElementById('chatDisplayTitle').innerText = data.title;
+            document.getElementById('chatDisplayStaff').innerText = data.assignedTo;
+            
+            const statusEl = document.getElementById('chatDisplayStatus');
+            statusEl.innerText = data.status;
+            statusEl.className = `badge badge-${data.status}`;
+
+            const chatBox = document.getElementById('customerChatBox');
+            chatBox.innerHTML = "";
+            
+            if(data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    const msgEl = document.createElement('div');
+                    msgEl.className = `msg ${msg.sender}`;
+                    msgEl.innerHTML = `${msg.text} <span class="msg-meta">${msg.time}</span>`;
+                    chatBox.appendChild(msgEl);
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } else {
+                chatBox.innerHTML = `<p style="text-align:center;color:#999;font-size:12px;margin-top:20px;">Henüz mesaj bulunmuyor. İlk mesajı yazabilirsiniz.</p>`;
+            }
+        });
+    }
+
+    function exitCustomerChat() {
+        if(customerChatUnsubscribe) customerChatUnsubscribe();
+        activeCustomerTicketId = null;
+        switchScreen('loginScreen');
+    }
+
+    function sendChatMessage(senderType, adminTicketId = null) {
+        const ticketId = senderType === 'customer' ? activeCustomerTicketId : adminTicketId;
+        const inputId = senderType === 'customer' ? 'customerChatInput' : `adminChatInput-${adminTicketId}`;
+        const inputEl = document.getElementById(inputId);
+        if(!inputEl || !inputEl.value.trim()) return;
+
+        const messageText = inputEl.value.trim();
+        const timeString = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        const newMessage = {
+            sender: senderType, 
+            text: messageText,
+            time: timeString,
+            timestamp: Date.now()
+        };
+
+        db.collection("tickets").doc(ticketId).update({
+            messages: firebase.firestore.FieldValue.arrayUnion(newMessage)
+        }).then(() => {
+            inputEl.value = "";
+        });
+    }
+
+    function listenToTickets() {
+        if(unsubscribe) unsubscribe();
+
+        unsubscribe = db.collection("tickets").orderBy("timestamp", "desc")
+        .onSnapshot((snapshot) => {
+            const container = document.getElementById('ticketContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            let open = 0, process = 0, solved = 0;
+            let hasNewOpenTicket = false;
+            
+            if(snapshot.empty) {
+                container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Bulut veritabanında henüz hiç talep bulunmuyor.</p>';
+            }
+
+            snapshot.forEach((doc) => {
+                const t = doc.data();
+                const docId = doc.id;
+
+                if(t.status === 'Açık') open++;
+                if(t.status === 'İşlemde') process++;
+                if(t.status === 'Çözüldü') solved++;
+
+                if (!isInitialLoad && t.status === 'Açık') hasNewOpenTicket = true;
+
+                let borderCol = '#ef4444';
+                if(t.status === 'İşlemde') borderCol = '#3b82f6';
+                if(t.status === 'Çözüldü') borderCol = '#10b981';
+
+                let animationClass = (!isInitialLoad && t.status === 'Açık') ? 'new-alert-animation' : '';
+
+                let actionButtons = '';
+                if(t.status === 'Açık') actionButtons += `<span class="btn-small btn-process" onclick="updateStatus('${docId}', 'İşlemde')">İşleme Al</span>`;
+                if(t.status !== 'Çözüldü') actionButtons += `<span class="btn-small btn-solve" onclick="updateStatus('${docId}', 'Çözüldü')">Çözüldü</span>`;
+                actionButtons += `<span class="btn-small btn-delete" onclick="deleteTicket('${docId}')">Sil</span>`;
+
+                let anydeskHTML = '';
+                if(t.anydesk && t.anydesk !== "Belirtilmedi") {
+                    anydeskHTML = `<div class="anydesk-container"><span class="anydesk-box">💻 AnyDesk: <strong>${t.anydesk}</strong></span></div>`;
+                }
+
+                let adminMessagesHTML = "";
+                if(t.messages && t.messages.length > 0) {
+                    t.messages.forEach(msg => {
+                        adminMessagesHTML += `<div class="msg ${msg.sender}">${msg.text} <span class="msg-meta">${msg.time}</span></div>`;
+                    });
+                } else {
+                    adminMessagesHTML = `<p style="text-align:center;color:#999;font-size:11px;padding:5px;">Yazışma geçmişi temiz.</p>`;
+                }
+
+                const staffList = ['Atanmadı', 'Uğurcan', 'Ahmet'];
+                let selectOptions = '';
+                staffList.forEach(staff => {
+                    let selected = (t.assignedTo === staff) ? 'selected' : '';
+                    selectOptions += `<option value="${staff}" ${selected}>${staff}</option>`;
+                });
+
+                const item = document.createElement('div');
+                item.className = `ticket-item ${animationClass}`;
+                item.style.borderLeft = `4px solid ${borderCol}`;
+                item.innerHTML = `
+                    <div class="ticket-header">
+                        <span class="ticket-title">[${t.ticketId}] ${t.title}</span>
+                        <span class="badge badge-${t.status}">${t.status}</span>
+                    </div>
+                    <div class="ticket-meta"><strong>Müşteri:</strong> ${t.company} (${t.name}) | <strong>Kat:</strong> ${t.category}</div>
+                    <div class="ticket-meta" style="margin-top:-5px; font-size:11px;"><strong>Zaman:</strong> ${t.dateString || 'Yeni'}</div>
+                    <div class="ticket-desc">
+                        ${t.desc.replace(/\n/g, '<br>')}
+                        ${anydeskHTML} 
+                    </div>
+                    
+                    <div class="chat-section" style="background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom:10px;">
+                        <div class="chat-box" style="max-height:130px;" id="adminChatBox-${docId}">${adminMessagesHTML}</div>
+                        <div class="chat-input-group">
+                            <input type="text" id="adminChatInput-${docId}" placeholder="Müşteriye yanıt yazın..." onkeypress="if(event.key==='Enter') sendChatMessage('admin', '${docId}')">
+                            <button class="chat-send-btn" style="padding: 6px 12px; font-size:12px;" onclick="sendChatMessage('admin', '${docId}')">Cevapla</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:10px; padding-top:10px; border-top:1px solid #f1f5f9;">
+                        <div class="assignment-box">
+                            <strong>Uzman:</strong>
+                            <select class="assignment-select" onchange="assignStaff('${docId}', this.value)">${selectOptions}</select>
+                        </div>
+                        <div class="actions">${actionButtons}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+                
+                const ab = document.getElementById(`adminChatBox-${docId}`);
+                if(ab) ab.scrollTop = ab.scrollHeight;
+            });
+
+            document.getElementById('countOpen').innerText = open;
+            document.getElementById('countProcess').innerText = process;
+            document.getElementById('countCombined').innerText = solved;
+
+            if (hasNewOpenTicket) {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.2);
+                } catch(e) { console.log(e); }
+            }
+            isInitialLoad = false;
+        });
+    }
+
+    function updateStatus(docId, newStatus) { db.collection("tickets").doc(docId).update({ status: newStatus }); }
+    function assignStaff(docId, staffName) { db.collection("tickets").doc(docId).update({ assignedTo: staffName }); }
+    function deleteTicket(docId) { if(confirm('Bu çağrıyı buluttan kalıcı olarak silmek istiyor musunuz?')) { db.collection("tickets").doc(docId).delete(); } }
+</script>
+</body>
+</html>
